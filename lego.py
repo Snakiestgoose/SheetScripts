@@ -32,7 +32,6 @@ def main():
     lego_key = os.getenv("REBRICKABLE_API_KEY")
 
     logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
-    logging.debug('File: %s', file)
 
     #authorization
     gc = pygsheets.authorize(service_file=file)
@@ -42,11 +41,10 @@ def main():
     wks = sh.worksheet_by_title("HaveList")
 
     # TODO: Set range with wks.rows
-    cell_range = wks.range('A4:B10', returnas='matrix')
+    cell_range = wks.range('A4:B100', returnas='matrix')
 
     logging.debug('\n')
     for id in range(wks.rows):
-        logging.debug('id: %s', cell_range[id])
         if not cell_range[id][0]:
             break
         else:
@@ -54,9 +52,25 @@ def main():
             if cell_range[id][1] == "":
                 legoId = cell_range[id][0]
                 rebrickableData(legoId, lego_key, wks, id)
-                logging.debug('ids" %s', legoId)
 
     logging.debug('\n')
+    #Sort table:
+    wks.sort_range("A4", "H100", basecolumnindex=0, sortorder='ASCENDING')
+
+
+def getSetTheme(themeId, legoKey):
+    import requests
+    #GET /api/v3/lego/themes/{id}/
+    api_url = "https://rebrickable.com/api/v3/lego/themes/{}/?key={}".format(themeId, legoKey)
+    response = requests.get(api_url)
+    jsonresponse = response.json()
+
+    logging.debug("jsonresponse: %s", jsonresponse)
+
+    if response.status_code == 200:
+        return jsonresponse["name"]
+    else:
+        return themeId
 
 # Rebrickable API queries
 def rebrickableData(legoId, legoKey, wks, rowIndex):
@@ -76,7 +90,7 @@ def rebrickableData(legoId, legoKey, wks, rowIndex):
     if response.status_code == 200:
         newSet.name = jsonresponse["name"]
         newSet.year = jsonresponse["year"]
-        newSet.theme_id = jsonresponse["theme_id"]
+        newSet.theme_id = getSetTheme(jsonresponse["theme_id"], legoKey)
         newSet.num_parts = jsonresponse["num_parts"]
         newSet.set_img_url = jsonresponse["set_img_url"]
         newSet.set_url = jsonresponse["set_url"]
