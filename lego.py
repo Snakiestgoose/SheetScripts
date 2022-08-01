@@ -8,16 +8,6 @@ class LegoSet():
     set_url = ""
     last_modified_dt = ""
 
-    # The class "constructor" - It's actually an initializer 
-    # def __init__(set, set_num, year, theme_id, num_parts, set_img_url, set_url, last_modified_dt):
-    #     set.set_num = set_num
-    #     set.year = year
-    #     set.theme_id = theme_id
-    #     set.num_parts = num_parts
-    #     set.set_img_url = set_img_url
-    #     set.set_url = set_url
-    #     set.last_modified_dt = last_modified_dt
-
 import json
 import pygsheets
 import pandas as pd
@@ -41,6 +31,7 @@ def main():
     wks = sh.worksheet_by_title("HaveList")
 
     # TODO: Set range with wks.rows
+    # Remove wishlist items if found in havelist
     cell_range = wks.range('A4:B100', returnas='matrix')
 
     logging.debug('\n')
@@ -56,6 +47,29 @@ def main():
     logging.debug('\n')
     #Sort table:
     wks.sort_range("A4", "H100", basecolumnindex=0, sortorder='ASCENDING')
+
+
+    # WISHLIST
+    wks = sh.worksheet_by_title("WishList")
+
+    # TODO: Set range with wks.rows
+    cell_range = wks.range('A4:B100', returnas='matrix')
+
+    logging.debug('\n')
+    for id in range(wks.rows):
+        if not cell_range[id][0]:
+            break
+        else:
+            # Add id to list
+            if cell_range[id][1] == "":
+                legoId = cell_range[id][0]
+                rebrickableData(legoId, lego_key, wks, id)
+
+    logging.debug('\n')
+    #Sort table:
+    wks.sort_range("A4", "H100", basecolumnindex=0, sortorder='ASCENDING')
+
+
 
 
 def getSetTheme(themeId, legoKey):
@@ -125,7 +139,7 @@ def rebrickableData(legoId, legoKey, wks, rowIndex):
         elif i == 8:
             c1.value = newSet.last_modified_dt
         
-
+#TODO: appears to time out after about 8 entries 
 main()
 
 
