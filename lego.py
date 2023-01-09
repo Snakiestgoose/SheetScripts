@@ -23,6 +23,8 @@ def main():
 
     logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
+    logging.debug('Test')
+
     #authorization
     gc = pygsheets.authorize(service_file=file)
     #open the google spreadsheet (where 'PY to Gsheet Test' is the name of my sheet)
